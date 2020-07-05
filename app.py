@@ -52,6 +52,9 @@ def show_user(emp_id):
     except Exception as ex:
         print(ex)
         return abort(500)
+    
+    finally:
+        connection.close()
 
 @app.route('/users', methods=['POST'])
 def add_user():
