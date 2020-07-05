@@ -27,6 +27,36 @@ app = Flask(__name__)
 def hello_world():
     return "Welcome!"
 
+@app.route('/users')
+def show_all_users():
+    try:
+        connection = engine.connect()
+
+        get_all_users = """ SELECT emp_id, first_name, last_name, job_title, dob
+                         FROM employee;
+                         """
+        db_result = connection.execute(get_all_users)
+
+        result = []
+        for res in db_result:
+            record = {
+                'emp_id': res['emp_id'],
+                'first_name': res['first_name'],
+                'last_name': res['last_name'],
+                'job_title': res['job_title'],
+                'dob': res['dob']
+            }
+            result.append(record)
+
+        return jsonify({'data':result}), 200
+
+    except Exception as ex:
+        print(ex)
+        return abort(500)
+    
+    finally:
+        connection.close()
+
 @app.route('/users/<int:emp_id>')
 def show_user(emp_id):
     try:
@@ -43,6 +73,7 @@ def show_user(emp_id):
                 'emp_id': res['emp_id'],
                 'first_name': res['first_name'],
                 'last_name': res['last_name'],
+                'job_title': res['job_title'],
                 'dob': res['dob']
             }
             result.append(record)
@@ -82,7 +113,7 @@ def add_user():
                                         user['job_title'],
                                         user['dob']))
 
-        return jsonify({'user': user}), 201
+        return "New employee enrolled", 201
     
     except Exception as ex:
         print(ex)
@@ -90,6 +121,45 @@ def add_user():
     
     finally:
         connection.close()
+
+@app.route('/users/<int:emp_id>', methods=['PUT'])
+def update_user(emp_id):
+    try:
+        connection = engine.connect()
+
+        if not request.json or not 'first_name' in request.json \
+            or not 'dob' in request.json:
+            return abort(400)
+        
+        user = {
+            'first_name': request.json['first_name'],
+            'last_name': request.json.get('last_name', None),
+            'job_title': request.json.get('job_title', None),
+            'dob': request.json.get('dob', None)
+        }
+        
+        update_user_query = """UPDATE employee 
+                        set first_name = %s, 
+                        last_name = %s, 
+                        job_title = %s, 
+                        dob = %s
+                        where emp_id = %s;
+                         """
+        connection.execute(update_user_query, (user['first_name'],
+                                        user['last_name'],
+                                        user['job_title'],
+                                        user['dob'],
+                                        emp_id))
+
+        return "Employee {} information is updated".format(emp_id), 200
+
+    except Exception as ex:
+        print(ex)
+        return abort(500)
+    
+    finally:
+        connection.close()
+
 
 if __name__ == "__main__":
     app.run()
