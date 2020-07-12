@@ -31,24 +31,59 @@ def hello_world():
 def show_all_users():
     try:
         connection = engine.connect()
+        args = request.args
+        limit = 50 # Default limit
+        offset = 0 # Default offset
+        
+        # Pagination
+        if "limit" in args:
+            try:
+                limit = int(args["limit"])
+            except ValueError:
+                return "Limit value should be an integer", 400
 
-        get_all_users = """ SELECT emp_id, first_name, last_name, job_title, dob
-                         FROM employee;
-                         """
+        if "offset" in args:
+            try:
+                offset = int(args["offset"])
+            except ValueError:
+                return "Offset value should be an integer", 400
+
+
+        # Default query 
+        get_all_users = """ SELECT id, first_name, last_name, job_title, dob
+                         FROM employee LIMIT {limit} OFFSET {offset};
+                         """.format(limit=limit, offset=offset)
+
         db_result = connection.execute(get_all_users)
 
         result = []
         for res in db_result:
             record = {
-                'emp_id': res['emp_id'],
+                'emp_id': res['id'],
                 'first_name': res['first_name'],
                 'last_name': res['last_name'],
                 'job_title': res['job_title'],
                 'dob': res['dob']
             }
             result.append(record)
-
-        return jsonify({'data':result}), 200
+        
+        if len(result) == 0:
+            links = {}
+        else:
+            links = {
+                "next": "http://localhost:5000/users?limit={limit}&offset={offset}"
+                .format(limit=limit, offset=offset+limit)
+            }
+        
+        response = {
+            "pagination": {
+                "offset": offset,
+                "limit": limit 
+            },
+            "data": result,
+            "links": links
+        }
+        return response, 200
 
     except Exception as ex:
         print(ex)
