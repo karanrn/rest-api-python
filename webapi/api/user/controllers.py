@@ -2,15 +2,14 @@ from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
-
-#from webapi.data.models import User
-
-user = Blueprint('user', __name__)
-
 from configparser import ConfigParser
 import sqlalchemy as db
 
-# Config parser
+from webapi.data.models import User
+
+user = Blueprint('user', __name__)
+
+#Config parser
 config = ConfigParser()
 config.read('/home/karan/WebAPI-Python/config.ini')
 
@@ -24,10 +23,6 @@ db_name = config['database']['name']
 connection_str = f'mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}'
 # connect to database
 engine = db.create_engine(connection_str)
-
-# @user.route('/', methods=['GET'])
-# def hello_world():
-#     return "Welcome!"
 
 @user.route('/', methods=['GET'])
 def get_users():
@@ -52,7 +47,7 @@ def get_users():
 
 
         # Default query 
-        get_all_users = """ SELECT id, first_name, last_name, job_title, dob
+        get_all_users = """ SELECT emp_id, first_name, last_name, job_title, dob
                          FROM employee LIMIT {limit} OFFSET {offset};
                          """.format(limit=limit, offset=offset)
 
@@ -61,7 +56,7 @@ def get_users():
         result = []
         for res in db_result:
             record = {
-                'emp_id': res['id'],
+                'emp_id': res['emp_id'],
                 'first_name': res['first_name'],
                 'last_name': res['last_name'],
                 'job_title': res['job_title'],
@@ -99,15 +94,15 @@ def get_user(emp_id):
     try:
         connection = engine.connect()
         
-        get_user_query = """SELECT id, first_name, last_name, job_title, dob
-                         FROM employee where id = %s;
+        get_user_query = """SELECT emp_id, first_name, last_name, job_title, dob
+                         FROM employee where emp_id = %s;
                          """
         db_result = connection.execute(get_user_query, emp_id)
 
         result = []
         for res in db_result:
             record = {
-                'emp_id': res['id'],
+                'emp_id': res['emp_id'],
                 'first_name': res['first_name'],
                 'last_name': res['last_name'],
                 'job_title': res['job_title'],
@@ -115,7 +110,10 @@ def get_user(emp_id):
             }
             result.append(record)
 
-        return jsonify({'data':result}), 200
+        if len(result) == 0:
+            result = "No employee with employee ID: {}".format(emp_id)
+
+        return jsonify({'data':result}), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
         print(ex)
@@ -130,27 +128,29 @@ def register():
         connection = engine.connect()
 
         if not request.json or not 'first_name' in request.json \
-            or not 'dob' in request.json:
+            or not 'dob' in request.json or not 'emp_id' in request.json:
             return abort(400)
         
         user = {
+            'emp_id' : request.json.get('emp_id'),
             'first_name': request.json['first_name'],
             'last_name': request.json.get('last_name', None),
             'job_title': request.json.get('job_title', None),
             'dob': request.json.get('dob', None)
         }
 
-        insert_query = """INSERT INTO employee (first_name, last_name, job_title, dob)
+        insert_query = """INSERT INTO employee (emp_id, first_name, last_name, job_title, dob)
                             VALUES
-                            (%s, %s, %s, %s);
+                            (%s, %s, %s, %s, %s);
                         """
 
-        connection.execute(insert_query, (user['first_name'],
+        connection.execute(insert_query, (user['emp_id'],
+                                        user['first_name'],
                                         user['last_name'],
                                         user['job_title'],
                                         user['dob']))
 
-        return "New employee enrolled", 201
+        return "New employee enrolled", 201, {'Content-Type': 'application/json'}
     
     except Exception as ex:
         print(ex)
@@ -180,7 +180,7 @@ def update_user(emp_id):
                         last_name = %s, 
                         job_title = %s, 
                         dob = %s
-                        where id = %s;
+                        where emp_id = %s;
                          """
         connection.execute(update_user_query, (user['first_name'],
                                         user['last_name'],
@@ -188,7 +188,7 @@ def update_user(emp_id):
                                         user['dob'],
                                         emp_id))
 
-        return "Employee {} information is updated".format(emp_id), 200
+        return "Employee {} information is updated".format(emp_id), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
         print(ex)
@@ -196,3 +196,7 @@ def update_user(emp_id):
     
     finally:
         connection.close()
+
+# @user.route('/search', methods=['GET']):
+# def search_users():
+
