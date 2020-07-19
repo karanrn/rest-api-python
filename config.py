@@ -13,7 +13,7 @@ class Development(BaseConfig):
     """ Development config. We use Debug mode """
     HOST = os.environ['DB_HOST']
     PORT = 3306
-    USER = os.environ['DB_USER']
+    DB_USER = os.environ['DB_USER']
     DB_PASSWORD = os.environ['DB_PASSWORD']
     DB_NAME = os.environ['DB_NAME']
     DEBUG = True
@@ -26,7 +26,7 @@ class Production(BaseConfig):
 
     HOST = os.environ['DB_HOST']
     PORT = 3306
-    USER = os.environ['DB_USER']
+    DB_USER = os.environ['DB_USER']
     DB_PASSWORD = os.environ['DB_PASSWORD']
     DB_NAME = os.environ['DB_NAME']
     DEBUG = True
