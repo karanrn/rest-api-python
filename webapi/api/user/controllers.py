@@ -2,107 +2,114 @@ from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
-# from configparser import ConfigParser
-# import sqlalchemy as db
+import json
 
-from webapi.data.models import User
+from webapi.data.models import Employee
+from webapi import db
 
-user = Blueprint('user', __name__)
+employee = Blueprint('employees', __name__)
 
-# #Config parser
-# config = ConfigParser()
-# config.read('/home/karan/WebAPI-Python/config.ini')
-
-# # Database connection parameters
-# db_user = config['database']['user']
-# db_pwd = config['database']['password']
-# db_host = config['database']['host']
-# db_port = config['database']['port']
-# db_name = config['database']['name']
-
-# connection_str = f'mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}'
-# # connect to database
-# engine = db.create_engine(connection_str)
-
-@user.route('/', methods=['GET'])
-def get_users():
+@employee.route('/', methods=['GET'])
+def get_employees():
     try:
         args = request.args
-        limit = 50 # Default limit
-        offset = 0 # Default offset
-        
+        per_page = 20
+        page = 1
         # Pagination
-        if "limit" in args:
+        if "page" in args:
             try:
-                limit = int(args["limit"])
+                page = int(args["page"])
             except ValueError:
-                return "Limit value should be an integer", 400
+                return "Page value should be an integer", 400
 
-        if "offset" in args:
-            try:
-                offset = int(args["offset"])
-            except ValueError:
-                return "Offset value should be an integer", 400
-
-        response = User.fetch_all_users(limit, offset)
+        employees = Employee.query.order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
         
-        return response, 200, {'Content-Type': 'application/json'}
+        result = []
+        for emp in employees.items:
+            result.append({
+                'emp_id': emp.emp_id,
+                'first_name': emp.first_name,
+                'last_name': emp.last_name,
+                'job_title': emp.job_title,
+                'dob': emp.dob
+            })
+        
+        links = {}
+        if employees.has_prev:
+            links['prev_page'] = f'http://localhost:5000/api/employees?page={employees.prev_num}'
+        if employees.has_next:
+            links['next_page'] = f'http://localhost:5000/api/employees?page={employees.next_num}'
+        
+        response = {
+            'data': result,
+            'links': links
+        }
+        return jsonify(response), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
         print(ex)
         return abort(500)
 
-@user.route('/<int:emp_id>', methods=['GET'])
-def get_user(emp_id):
+@employee.route('/<int:emp_id>', methods=['GET'])
+def get_employee(emp_id):
     try:
-        result = User.fetch_user(emp_id)
-        return jsonify({'data':result}), 200, {'Content-Type': 'application/json'}
+        emp = Employee.query.filter_by(emp_id=emp_id).first_or_404()
+        return jsonify({'data': emp.serialize}), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
         print(ex)
-        return abort(500)
+        return not_found('Employee does not exist')
 
-@user.route('/register', methods=['POST'])
+@employee.route('/register', methods=['POST'])
 def register():
     try:
         if not request.json or not 'first_name' in request.json \
             or not 'dob' in request.json or not 'emp_id' in request.json:
-            return abort(400)
-        
-        new_user = {
-            'emp_id' : request.json.get('emp_id'),
-            'first_name': request.json['first_name'],
-            'last_name': request.json.get('last_name', None),
-            'job_title': request.json.get('job_title', None),
-            'dob': request.json.get('dob', None)
-        }
+            return bad_request('First_name, dob or/and emp_id field(s) is/are missing')
+    
+        emp_id = request.json.get('emp_id'),
+        first_name = request.json['first_name'],
+        last_name = request.json.get('last_name', None),
+        job_title = request.json.get('job_title', None),
+        dob = request.json.get('dob', None)
 
-        response = User.add_user(new_user)
+        employee = Employee(emp_id, first_name, last_name, job_title, dob)
+        db.session.add(employee)
+        db.session.commit()
         
-        return response, 201, {'Content-Type': 'application/json'}
+        return jsonify({'employee': employee.serialize}), 201, {'Content-Type': 'application/json'}
     
     except Exception as ex:
         print(ex)
         return abort(500)
 
-@user.route('/update/<int:emp_id>', methods=['PUT'])
-def update_user(emp_id):
+@employee.route('/update/<int:emp_id>', methods=['PUT'])
+def update_employee(emp_id):
     try:
+        employee = Employee.query.filter_by(emp_id=emp_id).first_or_404()
+
         if not request.json or not 'first_name' in request.json \
             or not 'dob' in request.json:
-            return abort(400)
+            return bad_request('First_name or/and dob field(s) is/are missing')
         
-        user_details = {
-            'first_name': request.json['first_name'],
-            'last_name': request.json.get('last_name', None),
-            'job_title': request.json.get('job_title', None),
-            'dob': request.json.get('dob')
-        }
-        
-        response = User.update_user(emp_id, user_details)
+        employee.first_name = request.json['first_name'],
+        employee.last_name = request.json.get('last_name', None),
+        employee.job_title = request.json.get('job_title'),
+        employee.dob = request.json.get('dob')
 
-        return response, 200, {'Content-Type': 'application/json'}
+        return jsonify(f'Employee {emp_id} details updated'), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
         print(ex)
         return abort(500)
+
+# Custom Error Helper Functions
+def bad_request(message):
+    response = jsonify({'error': message})
+    response.status_code = 400
+    return response
+
+def not_found(message):
+    response = jsonify({'error': message})
+    response.status_code = 404
+    return response

@@ -1,14 +1,22 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-# Flask app initialization
-app = Flask(__name__)
+db = SQLAlchemy()
 
-from config import configure_app
+def create_app():
+    # Flask app initialization
+    app = Flask(__name__)
 
-# Configure app
-configure_app(app)
+    from config import configure_app
 
-app.url_map.strict_slashes = False
+    # Configure app
+    configure_app(app)
 
-from webapi.api.user.controllers import user
-app.register_blueprint(user, url_prefix='/api/users')
+    app.url_map.strict_slashes = False
+
+    from webapi.api.user.controllers import employee
+    app.register_blueprint(employee, url_prefix='/api/employees')
+    
+    db.init_app(app)
+
+    return app
