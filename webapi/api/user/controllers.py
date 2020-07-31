@@ -22,7 +22,7 @@ def get_employees():
             except ValueError:
                 return "Page value should be an integer", 400
 
-        employees = Employee.query.order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
+        employees = db.session.query(Employee).order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
         
         result = []
         for emp in employees.items:
@@ -53,7 +53,7 @@ def get_employees():
 @employee.route('/<int:emp_id>', methods=['GET'])
 def get_employee(emp_id):
     try:
-        emp = Employee.query.filter_by(emp_id=emp_id).first_or_404()
+        emp = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
         return jsonify({'data': emp.serialize}), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
@@ -75,19 +75,22 @@ def register():
 
         employee = Employee(emp_id, first_name, last_name, job_title, dob)
         db.session.add(employee)
+        db.session.flush()
         db.session.commit()
         
         return jsonify({'employee': employee.serialize}), 201, {'Content-Type': 'application/json'}
     
     except Exception as ex:
+        db.session.rollback()
         print(ex)
         return abort(500)
 
 @employee.route('/update/<int:emp_id>', methods=['PUT'])
 def update_employee(emp_id):
     try:
-        employee = Employee.query.filter_by(emp_id=emp_id).first_or_404()
+        employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
 
+        print(request.json['first_name'], request.json['dob'])
         if not request.json or not 'first_name' in request.json \
             or not 'dob' in request.json:
             return bad_request('First_name or/and dob field(s) is/are missing')
@@ -97,9 +100,13 @@ def update_employee(emp_id):
         employee.job_title = request.json.get('job_title'),
         employee.dob = request.json.get('dob')
 
+        db.session.flush()
+        db.session.commit()
+        
         return jsonify(f'Employee {emp_id} details updated'), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
+        db.session.rollback()
         print(ex)
         return abort(500)
 
