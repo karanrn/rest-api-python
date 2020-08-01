@@ -60,7 +60,7 @@ def get_employee(emp_id):
         print(ex)
         return not_found('Employee does not exist')
 
-@employee.route('/register', methods=['POST'])
+@employee.route('/', methods=['POST'])
 def register():
     try:
         if not request.json or not 'first_name' in request.json \
@@ -74,8 +74,8 @@ def register():
         dob = request.json.get('dob', None)
 
         employee = Employee(emp_id, first_name, last_name, job_title, dob)
+        
         db.session.add(employee)
-        db.session.flush()
         db.session.commit()
         
         return jsonify({'employee': employee.serialize}), 201, {'Content-Type': 'application/json'}
@@ -85,12 +85,11 @@ def register():
         print(ex)
         return abort(500)
 
-@employee.route('/update/<int:emp_id>', methods=['PUT'])
+@employee.route('/<int:emp_id>', methods=['PUT'])
 def update_employee(emp_id):
     try:
         employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
 
-        print(request.json['first_name'], request.json['dob'])
         if not request.json or not 'first_name' in request.json \
             or not 'dob' in request.json:
             return bad_request('First_name or/and dob field(s) is/are missing')
@@ -100,7 +99,6 @@ def update_employee(emp_id):
         employee.job_title = request.json.get('job_title'),
         employee.dob = request.json.get('dob')
 
-        db.session.flush()
         db.session.commit()
         
         return jsonify(f'Employee {emp_id} details updated'), 200, {'Content-Type': 'application/json'}
@@ -109,6 +107,21 @@ def update_employee(emp_id):
         db.session.rollback()
         print(ex)
         return abort(500)
+
+@employee.route('/<int:emp_id>', methods=['DELETE'])
+def delete_employee(emp_id):
+    try:
+        employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
+
+        db.session.delete(employee)
+        db.session.commit()
+
+        return jsonify(f'Employee {emp_id} is deleted'), 200, {'Content-Type': 'application/json'}
+    
+    except Exception as ex:
+        db.session.rollback()
+        print(ex)
+        return bad_request(f'Employee {emp_id} does not exist')
 
 # Custom Error Helper Functions
 def bad_request(message):
