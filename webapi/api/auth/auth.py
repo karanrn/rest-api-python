@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
+from flask import redirect
 
 from webapi.errors import bad_request
 from webapi import bcrypt
@@ -49,20 +50,21 @@ def signin():
         email = request.json.get('email_id')
         password = request.json.get('password')
 
-        user = db.session.query(User).filter_by(email=email).first_or_404()
+        user = db.session.query(User).filter_by(email=email).first()
 
-        if user and bcrypt.check_password_hash(
-            user.password, password
-        ):
-            auth_token = user.encode_auth_token(user.id)
+        if user:
+            if bcrypt.check_password_hash(user.password, password):
+                auth_token = user.encode_auth_token(user.id)
+                
+                responseObj = {
+                'status': 'Success',
+                'message': 'Successfull login.',
+                'auth_token': auth_token.decode()
+                }
             
-            responseObj = {
-            'status': 'Success',
-            'message': 'Successfully signed up.',
-            'auth_token': auth_token.decode()
-            }
-        
-            return jsonify(responseObj), 201, {'Content-Type': 'application/json'}
+                return jsonify(responseObj), 201, {'Content-Type': 'application/json'}
+        else:
+            return redirect("signup", code=303)
     
     except Exception as ex:
         print(ex)
