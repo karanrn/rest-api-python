@@ -2,6 +2,8 @@ from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
+from webapi.errors import not_found
+from webapi.errors import bad_request
 import json
 
 from webapi.data.models import Employee
@@ -122,14 +124,3 @@ def delete_employee(emp_id):
         db.session.rollback()
         print(ex)
         return bad_request(f'Employee {emp_id} does not exist')
-
-# Custom Error Helper Functions
-def bad_request(message):
-    response = jsonify({'error': message})
-    response.status_code = 400
-    return response
-
-def not_found(message):
-    response = jsonify({'error': message})
-    response.status_code = 404
-    return response

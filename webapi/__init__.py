@@ -1,7 +1,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
 db = SQLAlchemy()
+bcrypt = Bcrypt()
 
 def create_app():
     # Flask app initialization
@@ -14,9 +16,13 @@ def create_app():
 
     app.url_map.strict_slashes = False
 
-    from webapi.api.user.controllers import employee
+    from webapi.api.auth.auth import auth
+    app.register_blueprint(auth, url_prefix='/api/auth')
+
+    from webapi.api.employee.controllers import employee
     app.register_blueprint(employee, url_prefix='/api/employees')
     
     db.init_app(app)
+    bcrypt.init_app(app)
 
     return app

@@ -22,6 +22,8 @@ class Development(BaseConfig):
     APPNAME = "WebAPIDev"
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{HOST}:{PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BCRYPT_LOG_ROUNDS = 4
+    SECRET_KEY = os.environ['SECRET_KEY']
 
 class Production(BaseConfig):
     """ Production config. We use Debug mode false """
@@ -37,6 +39,8 @@ class Production(BaseConfig):
     APPNAME = "WebAPIProd"
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{HOST}:{PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BCRYPT_LOG_ROUNDS = 4
+    SECRET_KEY = os.environ['SECRET_KEY']
 
 def configure_app(app):
     """ App coniguration will be here"""
