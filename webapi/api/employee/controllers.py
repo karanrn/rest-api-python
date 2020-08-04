@@ -19,6 +19,9 @@ def get_employees():
         args = request.args
         per_page = 20
         page = 1
+
+        # allowed search fields
+        search_fields = ['first_name', 'last_name', 'job_title', 'dob']
         # Pagination
         if "page" in args:
             try:
@@ -26,7 +29,17 @@ def get_employees():
             except ValueError:
                 return "Page value should be an integer", 400
 
-        employees = db.session.query(Employee).order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
+        search_cols = [item for item in search_fields if item in args]
+        
+        if not bool(search_cols):
+            employees = db.session.query(Employee).order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
+        else:
+            employees = db.session.query(Employee)
+            for col in search_cols:
+                column = getattr(Employee, col, None)
+                filt = getattr(column, 'like')(args[col])
+                employees = employees.filter(filt)
+            employees = employees.order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
         
         result = []
         for emp in employees.items:
