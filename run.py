@@ -1,3 +1,3 @@
-import webapi
+import app
 
-app = webapi.create_app()
+app = app.create_app()

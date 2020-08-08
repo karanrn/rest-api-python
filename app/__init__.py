@@ -16,10 +16,10 @@ def create_app():
 
     app.url_map.strict_slashes = False
 
-    from webapi.api.auth.auth import auth
+    from app.api.auth.auth import auth
     app.register_blueprint(auth, url_prefix='/api/auth')
 
-    from webapi.api.employee.controllers import employee
+    from app.api.employee.controllers import employee
     app.register_blueprint(employee, url_prefix='/api/employees')
     
     db.init_app(app)

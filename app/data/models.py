@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from webapi import bcrypt
+from app import bcrypt
 import jwt
 import datetime
 from flask import current_app

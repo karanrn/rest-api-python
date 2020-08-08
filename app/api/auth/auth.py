@@ -4,10 +4,10 @@ from flask import abort
 from flask import jsonify
 from flask import redirect
 
-from webapi.errors import bad_request
-from webapi import bcrypt
-from webapi.data.models import User
-from webapi import db
+from app.errors import bad_request
+from app import bcrypt
+from app.data.models import User
+from app import db
 
 auth = Blueprint('auth', __name__)
 

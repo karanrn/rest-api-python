@@ -5,11 +5,11 @@ from flask import jsonify
 import jwt
 from functools import wraps
 
-from webapi.errors import not_found
-from webapi.errors import bad_request
-from webapi.data.models import Employee
-from webapi.data.models import User
-from webapi import db
+from app.errors import not_found
+from app.errors import bad_request
+from app.data.models import Employee
+from app.data.models import User
+from app import db
 
 employee = Blueprint('employees', __name__)
 
