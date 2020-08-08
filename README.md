@@ -97,3 +97,4 @@ curl -X POST -H "Content-Type: application/json" -H "x-access-token:eyJ0eXAiOiJK
 1. [Good practices of ReST API](https://medium.com/hashmapinc/rest-good-practices-for-api-design-881439796dc9)
 2. [Flask documentation](https://flask.palletsprojects.com/en/1.1.x/)
 3. [JSON Web Token](https://jwt.io/introduction/)
+4. [ReST API versioning](https://restfulapi.net/versioning/)
