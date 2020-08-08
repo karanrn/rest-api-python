@@ -31,6 +31,14 @@ export ENV=dev
 # Secret key for JWT encoding
 export SECRET_KEY=abc#123@789
 ``` 
+3. Run Setup to create tables basis models
+```
+python setup.py
+```
+4. Launch the API
+```
+flask run
+```
 
 ## ReST API operations
 ### Authentication:
