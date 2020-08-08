@@ -129,6 +129,9 @@ dmypy.json
 .pyre/
 
 reference.txt
+Notes.txt
+emp.json
+user.json
 
 # Docker
 docker/
