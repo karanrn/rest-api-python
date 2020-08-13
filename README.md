@@ -1,8 +1,8 @@
-# ReST API implementation in Python
-An attempt to understand implmentation of a good ReST API using Python. <br>
-I have used flask microframework to implement the ReST API.
+# REST API implementation in Python
+An attempt to understand implmentation of a good REST API using Python. <br>
+I have used flask microframework to implement the REST API.
 
-## Good practices of ReST API
+## Good practices of REST API
 1. Use Nouns in URI
 2. Let HTTP Verb define Action
 3. Pagination
@@ -40,7 +40,7 @@ python setup.py
 flask run
 ```
 
-## ReST API operations
+## REST API operations
 ### Authentication:
 1. Signup - 
 ```
@@ -94,7 +94,7 @@ curl -X POST -H "Content-Type: application/json" -H "x-access-token:eyJ0eXAiOiJK
 
 ---
 ## Read more - 
-1. [Good practices of ReST API](https://medium.com/hashmapinc/rest-good-practices-for-api-design-881439796dc9)
+1. [Good practices of REST API](https://medium.com/hashmapinc/rest-good-practices-for-api-design-881439796dc9)
 2. [Flask documentation](https://flask.palletsprojects.com/en/1.1.x/)
 3. [JSON Web Token](https://jwt.io/introduction/)
-4. [ReST API versioning](https://restfulapi.net/versioning/)
+4. [REST API versioning](https://restfulapi.net/versioning/)
