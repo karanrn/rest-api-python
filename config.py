@@ -1,8 +1,8 @@
 import os
 
 config = {
-    "dev": "config.Development",
-    "prod": "config.Production"
+    "development": "config.Development",
+    "production": "config.Production"
 }
 
 class BaseConfig(object):
@@ -18,7 +18,6 @@ class Development(BaseConfig):
     DB_NAME = os.environ['DB_NAME']
     DEBUG = True
     TESTING = False
-    ENV = 'dev'
     APPNAME = "WebAPIDev"
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{HOST}:{PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -33,9 +32,8 @@ class Production(BaseConfig):
     DB_USER = os.environ['DB_USER']
     DB_PASSWORD = os.environ['DB_PASSWORD']
     DB_NAME = os.environ['DB_NAME']
-    DEBUG = True
+    DEBUG = False
     TESTING = False
-    ENV = 'prod'
     APPNAME = "WebAPIProd"
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{HOST}:{PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -44,5 +42,5 @@ class Production(BaseConfig):
 
 def configure_app(app):
     """ App coniguration will be here"""
-    env = os.environ['ENV']
+    env = os.environ['FLASK_ENV']
     app.config.from_object(config[env])

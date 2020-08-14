@@ -26,7 +26,7 @@ export DB_PASSWORD=app@123
 export DB_NAME=test
 
 # Environment type
-export ENV=dev
+export FLASK_ENV=development
 
 # Secret key for JWT encoding
 export SECRET_KEY=abc#123@789

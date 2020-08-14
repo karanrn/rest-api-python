@@ -3,6 +3,8 @@ from flask import request
 from flask import abort
 from flask import jsonify
 from flask import redirect
+from flask import make_response
+from functools import wraps
 
 from app.errors import bad_request
 from app import bcrypt
@@ -68,4 +70,30 @@ def signin():
     
     except Exception as ex:
         print(ex)
-        return 'try again', 401    
+        return 'try again', 401   
+
+
+def validate_auth_token(func):
+    """ Validate auth token """
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        token = None
+        
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return make_response(jsonify({'message': 'A valid token is missing'}),
+            401, {'Content-Type': 'application/json'})
+
+        try:
+            data = User.decode_auth_token(token)
+            if isinstance(data, int):
+                return func(*args, **kwargs)
+            else:
+                return make_response(jsonify({'message': data}),
+                401, {'Content-Type': 'application/json'})
+        except:
+            return make_response(jsonify({'message': 'Token is invalid'}),
+            401, {'Content-Type': 'application/json'})
+    return decorated
