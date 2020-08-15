@@ -1,8 +1,12 @@
-from flask_sqlalchemy import SQLAlchemy
-from app import bcrypt
-import jwt
 import datetime
+from typing import Dict
+from typing import Any
+
+from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
+import jwt
+
+from app import bcrypt
 
 db = SQLAlchemy()
 
@@ -24,7 +28,7 @@ class Employee(db.Model):
         self.dob = dob
     
     @property
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         """Return object data in easily serializable format"""
         return {
             'emp_id': self.emp_id,
@@ -52,7 +56,7 @@ class User(db.Model):
         self.registered_on = datetime.datetime.now()
         self.admin = admin
 
-    def encode_auth_token(self, user_id):
+    def encode_auth_token(self, user_id:int) -> bytes:
         """ Generates auth token """
         try:
             payload = {
@@ -72,7 +76,7 @@ class User(db.Model):
             return ex
     
     @staticmethod
-    def decode_auth_token(auth_token):
+    def decode_auth_token(auth_token: str) -> str:
         """ Validates auth token """
         try:
             payload = jwt.decode(auth_token, current_app.config.get('SECRET_KEY'))

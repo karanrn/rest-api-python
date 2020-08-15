@@ -17,7 +17,7 @@ API performs CRUD operations on employees, authentication is implemented using J
 2. Export environment variables for the API
 ```
 # Flask entry point
-export FLASK_APP=app.py
+export FLASK_APP=run.py
 
 # Database details
 export DB_HOST=localhost

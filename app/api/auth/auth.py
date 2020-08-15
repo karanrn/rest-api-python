@@ -1,10 +1,16 @@
+from functools import wraps
+from typing import Union
+from typing import Any
+from typing import Tuple
+from typing import Dict
+
 from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
 from flask import redirect
 from flask import make_response
-from functools import wraps
+from flask import Response
 
 from app.errors import bad_request
 from app import bcrypt
@@ -14,7 +20,7 @@ from app import db
 auth = Blueprint('auth', __name__)
 
 @auth.route('/signup', methods=['POST'])
-def signup():
+def signup() -> Union[Tuple[Response, int, Dict[str,str]], Tuple[str, int]]:
     """ Signup new user """
     try:
         if not request.json or not 'email_id' in request.json \
@@ -42,7 +48,7 @@ def signup():
         return 'try again', 401
 
 @auth.route('/login', methods=['POST'])
-def signin():
+def signin() -> Union[Tuple[Response, int, Dict[str,str]], Response, Tuple[str, int]]:
     """ Login user """
     try:
         if not request.json or not 'email_id' in request.json \

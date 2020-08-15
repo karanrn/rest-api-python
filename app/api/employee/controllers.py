@@ -1,7 +1,14 @@
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Any
+from typing import Union
+
 from flask import Blueprint
 from flask import request
 from flask import abort
 from flask import jsonify
+from flask import Response
 import jwt
 
 from app.errors import not_found
@@ -14,9 +21,9 @@ from app.api.auth.auth import validate_auth_token
 employee = Blueprint('employees', __name__)
 
 @employee.route('/', methods=['GET'])
-def get_employees():
+def get_employees() -> Tuple[Response, int, Dict[str,str]]:
     try:
-        args = request.args
+        args:Dict[str,str] = request.args
         per_page = 20
         page = 1
 
@@ -29,17 +36,17 @@ def get_employees():
             except ValueError:
                 return "Page value should be an integer", 400
 
-        search_cols = [item for item in search_fields if item in args]
+        search_cols:List[str] = [item for item in search_fields if item in args]
         
         if not bool(search_cols):
-            employees = db.session.query(Employee).order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
+            employees:List[Employee] = db.session.query(Employee).order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
         else:
-            employees = db.session.query(Employee)
+            employees:List[Employee] = db.session.query(Employee)
             for col in search_cols:
                 column = getattr(Employee, col, None)
                 filt = getattr(column, 'like')(args[col])
                 employees = employees.filter(filt)
-            employees = employees.order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
+            employees:List[Employee] = employees.order_by(Employee.emp_id).paginate(page, per_page, error_out=False)
         
         result = []
         for emp in employees.items:
@@ -68,9 +75,9 @@ def get_employees():
         return abort(500)
 
 @employee.route('/<int:emp_id>', methods=['GET'])
-def get_employee(emp_id):
+def get_employee(emp_id:int) -> Union[Dict[str, str], Tuple[Response, int, Dict[str,str]]]:
     try:
-        emp = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
+        emp:Employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
         return jsonify({'data': emp.serialize}), 200, {'Content-Type': 'application/json'}
 
     except Exception as ex:
@@ -79,7 +86,7 @@ def get_employee(emp_id):
 
 @employee.route('/', methods=['POST'])
 @validate_auth_token
-def register():
+def register() -> Union[Dict[str, str], Tuple[Response, int, Dict[str,str]]]:
     try:
         if not request.json or not 'first_name' in request.json \
                 or not 'dob' in request.json or not 'emp_id' in request.json:
@@ -105,9 +112,9 @@ def register():
 
 @employee.route('/<int:emp_id>', methods=['PUT'])
 @validate_auth_token
-def update_employee(emp_id):
+def update_employee(emp_id:int) -> Union[Dict[str, str], Tuple[Response, int, Dict[str,str]]]:
     try:
-        employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
+        employee:Employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
 
         if not request.json or not 'first_name' in request.json \
             or not 'dob' in request.json:
@@ -130,9 +137,9 @@ def update_employee(emp_id):
 
 @employee.route('/<int:emp_id>', methods=['DELETE'])
 @validate_auth_token
-def delete_employee(emp_id):
+def delete_employee(emp_id:int) -> Union[Dict[str, str], Tuple[Response, int, Dict[str,str]]]:
     try:
-        employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
+        employee:employee = db.session.query(Employee).filter_by(emp_id=emp_id).first_or_404()
 
         db.session.delete(employee)
         db.session.commit()

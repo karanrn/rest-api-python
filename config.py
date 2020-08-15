@@ -1,5 +1,7 @@
 import os
 
+from flask import Flask
+
 config = {
     "development": "config.Development",
     "production": "config.Production"
@@ -40,7 +42,7 @@ class Production(BaseConfig):
     BCRYPT_LOG_ROUNDS = 4
     SECRET_KEY = os.environ['SECRET_KEY']
 
-def configure_app(app):
+def configure_app(app: Flask) -> None:
     """ App coniguration will be here"""
     env = os.environ['FLASK_ENV']
     app.config.from_object(config[env])
