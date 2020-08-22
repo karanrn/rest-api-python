@@ -39,7 +39,7 @@ def signup() -> Union[Tuple[Response, int, Dict[str,str]], Tuple[str, int]]:
         responseObj = {
             'status': 'Success',
             'message': 'Successfully signed up.',
-            'auth_token': auth_token.decode()
+            'auth_token': auth_token.decode('utf-8')
         }
         
         return jsonify(responseObj), 201, {'Content-Type': 'application/json'}
@@ -67,7 +67,7 @@ def signin() -> Union[Tuple[Response, int, Dict[str,str]], Response, Tuple[str, 
                 responseObj = {
                 'status': 'Success',
                 'message': 'Successfull login.',
-                'auth_token': auth_token.decode()
+                'auth_token': auth_token.decode('utf-8')
                 }
             
                 return jsonify(responseObj), 201, {'Content-Type': 'application/json'}
